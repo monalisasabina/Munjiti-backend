@@ -1,5 +1,4 @@
 from flask_sqlalchemy import SQLAlchemy
-
 from sqlalchemy_serializer import SerializerMixin
 from datetime import datetime
 
@@ -10,8 +9,11 @@ class User (db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     role=db.Column(db.String(50), nullable=False)
-    username = db.Column(db.String(100))
+    username = db.Column(db.String(100), unique=True, nullable= False)
     password =  db.Column(db.String(100))
+
+    def __repr__(self):
+        return f"<User {self.username}>"
 
 
 class Project(db.Model, SerializerMixin):
@@ -21,15 +23,53 @@ class Project(db.Model, SerializerMixin):
      name = db.Column(db.String(100), nullable=False)
      description = db.Column(db.String, nullable=False)
      date_added = db.Column(db.DateTime, default=datetime.utcnow)
+    
+     ministries = db.relationship('Ministry', secondary='ministry_projects', back_populates= 'projects')
+
+
+
+class Ministry(db.Model, SerializerMixin):
+    __tablename__ = 'ministries'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    description = db.Column(db.String, nullable=False)
+    created_at = db.Column(db.String, nullable=False)
+
+  # Relationships
+    projects = db.relationship('MinistryProject', back_populates='ministry')
+
+    def __repr__(self):
+        return f"<Ministry {self.name}>"
+
+
+
+# association table
+# table links the ministries and projects in a many to many r/ship
+class MinistryProject(db.Model):
+    __tablename__='ministry_projects'
+
+    ministry_id =db.Column(db.Integer, db.ForeignKey('ministries.id'), primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), primary_key=True)
+
+    ministry = db.relationship('Ministry', back_populates='projects')
+    project = db.relationship('Project', back_populates='ministries')
+
+    def __repr__(self):
+        return f"<MinistryProject Ministry: {self.ministry_id}, Project: {self.project_id}>"
+
 
 
 class Notice(db.Model, SerializerMixin):
     __tablename__='notices'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String, nullable=False)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Notice {self.title}>"
 
 
 class Downloads(db.Model, SerializerMixin):
@@ -41,6 +81,11 @@ class Downloads(db.Model, SerializerMixin):
     file_url = db. Column(db.String(300), nullable=False) #url/ path of the file
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
 
+    def __repr__(self):
+        return f"<Download {self.name}>"
+
+
+
 class ContactMessage(db.Model,SerializerMixin):
     __tablename__ = 'messages'
 
@@ -49,6 +94,11 @@ class ContactMessage(db.Model,SerializerMixin):
     sender_lastname = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String, nullable=False)
     message = db.Column(db.String, nullable=False)
+
+    def __repr__(self):
+        return f"<Message from {self.sender_firstname} {self.sender_lastname}>"
+
+
 
 class Notification(db.Model, SerializerMixin):
     __tablename__ = 'notifications'
@@ -59,3 +109,6 @@ class Notification(db.Model, SerializerMixin):
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+    def __repr__(self):
+      return f"<Notification {self.message[:20]}...>"
