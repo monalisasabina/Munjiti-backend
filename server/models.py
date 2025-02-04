@@ -1,20 +1,55 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_serializer import SerializerMixin
 from datetime import datetime
+from sqlalchemy.ext.hybrid import hybrid_property
+
+from flask_bcrypt import Bcrypt
+
 
 db = SQLAlchemy()
+bcrypt = Bcrypt()
 
 class User (db.Model, SerializerMixin):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
     role=db.Column(db.String(50), nullable=False)
-    username = db.Column(db.String(100), unique=True, nullable= False)
-    password =  db.Column(db.String(100))
+    username = db.Column(db.String(100), nullable= False)
+    _password_hash =  db.Column(db.String(100), nullable=False)
 
     def __repr__(self):
         return f"<User {self.username}>"
 
+    # password hashing
+    @hybrid_property
+    def password_hash(self):
+        return self._password_hash
+
+    @password_hash.setter
+    def password_hash(self, password):
+
+        password_hash = bcrypt.generate_password_hash(password.encode('utf-8'))
+        self._password_hash = password_hash.decode('utf-8')
+
+    def authenticate(self, password):
+        return bcrypt.check_password_hash(self._password, password.encode('utf-8'))    
+    
+
+
+
+class Pastor(db.Model, SerializerMixin):
+    __tablename__ = 'pastors'        
+
+    id= db.Column(db.Integer, primary_key=True)
+    firstname = db.Column(db.String, nullable=False)
+    lastname = db.Column(db.String, nullable=False)
+    image = db.Column(db.String, nullable=False)
+    role = db.Column(db.String, nullable=False)
+    description = db.Column(db.String, nullable=False)
+
+    def __repr__(self):
+        return f"<Pastor: Name {self.firstname} {self.lastname}"
+    
 
 class Project(db.Model, SerializerMixin):
      __tablename__ = 'projects'
@@ -27,7 +62,6 @@ class Project(db.Model, SerializerMixin):
      ministries = db.relationship('Ministry', secondary='ministry_projects', back_populates= 'projects')
 
 
-
 class Ministry(db.Model, SerializerMixin):
     __tablename__ = 'ministries'
 
@@ -37,16 +71,15 @@ class Ministry(db.Model, SerializerMixin):
     created_at = db.Column(db.String, nullable=False)
 
   # Relationships
-    projects = db.relationship('MinistryProject', back_populates='ministry')
+    projects = db.relationship('Project', secondary='ministry_projects', back_populates='ministries')
 
     def __repr__(self):
         return f"<Ministry {self.name}>"
-
-
+    
 
 # association table
 # table links the ministries and projects in a many to many r/ship
-class MinistryProject(db.Model):
+class MinistryProject(db.Model, SerializerMixin):
     __tablename__='ministry_projects'
 
     ministry_id =db.Column(db.Integer, db.ForeignKey('ministries.id'), primary_key=True)
@@ -70,6 +103,7 @@ class Notice(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f"<Notice {self.title}>"
+
 
 
 class Downloads(db.Model, SerializerMixin):
