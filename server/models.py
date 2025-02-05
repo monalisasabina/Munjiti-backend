@@ -1,10 +1,10 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_serializer import SerializerMixin
+from sqlalchemy.orm import validates
 from datetime import datetime
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from flask_bcrypt import Bcrypt
-
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
@@ -15,10 +15,17 @@ class User (db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     role=db.Column(db.String(50), nullable=False)
     username = db.Column(db.String(100), nullable= False)
+    email = db.Column(db.String, nullable= False)
     _password_hash =  db.Column(db.String(100), nullable=False)
 
     def __repr__(self):
         return f"<User {self.username}>"
+
+    # validating the email address
+    @validates('email')
+    def validate_email(self, key, address):
+        if '@' not in address:
+            raise ValueError('Please include @')
 
     # password hashing
     @hybrid_property
