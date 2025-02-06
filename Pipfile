@@ -11,6 +11,8 @@ sqlalchemy = "*"
 sqlalchemy-serializer = "*"
 flask-migrate = "*"
 flask-bcrypt = "*"
+cryptography = "*"
+flask-jwt-extended = "*"
 
 [dev-packages]
 
