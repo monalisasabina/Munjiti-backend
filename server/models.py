@@ -74,6 +74,7 @@ class Pastor(db.Model, SerializerMixin):
         return date_added
     
 
+
 class Project(db.Model, SerializerMixin):
      __tablename__ = 'projects'
 
@@ -83,7 +84,7 @@ class Project(db.Model, SerializerMixin):
      date_added = db.Column(db.DateTime, default=datetime.utcnow)
     
      # Relationship
-     ministries = db.relationship('Ministry', secondary='ministry_projects', back_populates= 'projects')
+     ministries = db.relationship('MinistryProject', back_populates= 'project')
 
      #validations
      @validates('date_added')
@@ -96,6 +97,7 @@ class Project(db.Model, SerializerMixin):
          return f"<Project: Name:{self.name} | Date Added: {self.date_added} >"   
 
 
+
 class Ministry(db.Model, SerializerMixin):
     __tablename__ = 'ministries'
 
@@ -105,11 +107,12 @@ class Ministry(db.Model, SerializerMixin):
     created_at = db.Column(db.String, nullable=False)
 
     # Relationship
-    projects = db.relationship('Project', secondary='ministry_projects', back_populates='ministries')
+    projects = db.relationship('MinistryProject', back_populates='ministry')
 
     def __repr__(self):
         return f"<Ministry {self.name}>"
     
+
 
 # association table
 # table links the ministries and projects in a many to many r/ship
