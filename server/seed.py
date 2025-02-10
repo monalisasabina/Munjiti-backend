@@ -20,7 +20,7 @@ with app.app_context():
 
 
     # Seeding Users
-    print('Adding users...')
+    print('\nAdding users...')
     users = [
             User(role="admin", username="admin1", email="admin1@example.com", password_hash="password1"),
             User(role="editor", username="editor1", email="editor1@example.com", password_hash="password2"),
@@ -70,11 +70,11 @@ with app.app_context():
     # Seeding Notices
     print("Adding notices...")
     notices = [
-            Notice(title="Sunday Service", description="Join us for worship this Sunday.", image="notice1.jpg"),
-            Notice(title="Prayer Meeting", description="Weekly prayer meeting every Wednesday.", image="notice2.jpg"),
-            Notice(title="Bible Study", description="Deep dive into the scriptures.", image="notice3.jpg"),
-            Notice(title="Community Outreach", description="Serving the local community.", image="notice4.jpg"),
-            Notice(title="Fundraiser", description="Raising funds for church projects.", image="notice5.jpg"),
+            Notice(title="Sunday Service", notice_text="Join us for worship this Sunday.", image="notice1.jpg"),
+            Notice(title="Prayer Meeting", notice_text="Weekly prayer meeting every Wednesday.", image="notice2.jpg"),
+            Notice(title="Bible Study", notice_text="Deep dive into the scriptures.", image="notice3.jpg"),
+            Notice(title="Community Outreach", notice_text="Serving the local community.", image="notice4.jpg"),
+            Notice(title="Fundraiser", notice_text="Raising funds for church projects.", image="notice5.jpg"),
         ]
     db.session.add_all(notices)
 
@@ -82,11 +82,11 @@ with app.app_context():
     # Seeding Downloads
     print("Adding downloads")
     downloads = [
-            Downloads(name="Sunday Bulletin", notice_text="Weekly bulletin with updates.", file_url="bulletin.pdf"),
-            Downloads(name="Church Constitution", notice_text="Guidelines for church governance.", file_url="constitution.pdf"),
-            Downloads(name="Worship Songs", notice_text="Collection of church worship songs.", file_url="songs.pdf"),
-            Downloads(name="Youth Program", notice_text="Upcoming events for youth.", file_url="youth.pdf"),
-            Downloads(name="Mission Report", notice_text="Details of past mission trips.", file_url="mission.pdf"),
+            Downloads(name="Sunday Bulletin", description="Weekly bulletin with updates.", file_url="bulletin.pdf"),
+            Downloads(name="Church Constitution", description="Guidelines for church governance.", file_url="constitution.pdf"),
+            Downloads(name="Worship Songs", description="Collection of church worship songs.", file_url="songs.pdf"),
+            Downloads(name="Youth Program", description="Upcoming events for youth.", file_url="youth.pdf"),
+            Downloads(name="Mission Report", description="Details of past mission trips.", file_url="mission.pdf"),
         ]
     db.session.add_all(downloads)
 
