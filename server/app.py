@@ -32,7 +32,7 @@ class Home(Resource):
         },200
 api.add_resource(Home,'/')
 
-# USER
+# USER CRUD
 class Users(Resource):
     
     def get(self):
@@ -50,6 +50,27 @@ class Users(Resource):
             users_list.append(user_dict)
 
         return make_response(jsonify(users_list),200)
+
+    
+    def post(self):
+
+        try:
+            data = request.get_json()
+
+            new_user = User(
+                username = data['username'],
+                role = data['role'],
+                email = data['email']
+            )
+
+            db.session.add(new_user)
+            db.session.commit()
+
+            return make_response(new_user.to_dict(),201)
+        
+        except Exception as e:
+            return make_response({'errors':['validation errors', str(e)]}, 403)
+
 
 api.add_resource(Users, '/users')       
 
