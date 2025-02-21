@@ -32,6 +32,60 @@ class Home(Resource):
         },200
 api.add_resource(Home,'/')
 
+
+# Authentication process
+# Signing up
+class Signup(Resource):
+    def post(self):
+
+        data = request.get_json()
+
+        username = data.get('username')
+        password = data.get('password')
+        email = data.get('email')
+        role = data.get('role')
+
+        if not username or not password or not email or not role:
+            return {'error': 'Username, email , password and role required'}, 400
+
+        #checking if username exists
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            return {'error':'Username already taken'}, 400 
+
+        #checking if email exists
+        existing_email = User.query.filter_by(email=email).first()
+        if existing_email:
+            return {'error':'Email; already taken'}, 400
+
+        # creating new user
+        new_user = User(
+            username=username,
+            email=email,
+            role=role,
+        ) 
+
+        new_user.password_hash(password) = password
+
+        db.session.add(new_user)
+        db.session.commit()
+
+    
+        new_user_data = {
+            "id":new_user.id,
+            "username":new_user.username,
+            "role":new_user.role
+        }
+
+        return {
+            'message':'User created successfully',
+            'user':new_user_data
+        },201
+    
+api.add_resource(Signup, '/signup', endpoint='signup')    
+
+      
+
 # USER CRUD
 class Users(Resource):
     
