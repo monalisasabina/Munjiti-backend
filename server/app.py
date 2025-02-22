@@ -154,8 +154,18 @@ class CheckSession(Resource):
 
 api.add_resource(CheckSession, '/check_session', endpoint='check_session')
 
-      
+#Logout
+class Logout(Resource):
 
+    def delete(self):
+
+        session.pop('user_id', None)
+        return{},204
+
+api.add_resource(Logout, '/logout', endpoint='logout')   
+
+
+ 
 # USER CRUD
 class Users(Resource):
     
@@ -196,7 +206,31 @@ class Users(Resource):
             return make_response({'errors':['validation errors', str(e)]}, 403)
 
 
-api.add_resource(Users, '/users')       
+api.add_resource(Users, '/users', endpoint='users')      
+
+
+# Users by ID
+class Users_by_ID(Resource):
+
+  def get(self,id):
+
+    user = User.query.filter(User.id == id).first()
+
+    if not user:
+      return make_response({'error':'User  not  found'},404)
+       
+    user_dict= {
+            "id":user.id,
+            "username":user.username,
+            "email":user.email,
+            "role":user.role
+        }
+    return make_response(user_dict,200)
+        
+
+api.add_resource(Users_by_ID, '/users/<int:id>')
+
+
 
 
 
