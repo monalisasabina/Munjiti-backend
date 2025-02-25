@@ -211,7 +211,8 @@ api.add_resource(Users, '/users', endpoint='users')
 
 # Users by ID
 class Users_by_ID(Resource):
-
+ 
+  #Getting each user by ID    
   def get(self,id):
 
     user = User.query.filter(User.id == id).first()
@@ -226,9 +227,80 @@ class Users_by_ID(Resource):
             "role":user.role
         }
     return make_response(jsonify(user_dict),200)
+
+
+  # Updating the user by ID
+  def patch(self,id):
+
+        user = User.query.filter(User.id == id).first()
+
+        data =  request.get_json()
+        
+        if not user:
+            return make_response(jsonify({"error":"User not found"}),404)
+
+        try:
+            for attr in data:
+                setattr(user, attr, data[attr])
+
+            db.session.add(user)    
+            db.session.commit()
+
+            user_dict = {
+                "username":user.username,
+                "email":user.email,
+                "role":user.role
+            }
+
+            return make_response(jsonify(user_dict), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"error":"validation errors", "details": str(e)}),400)
         
 
+  def delete(self,id):
+      
+      user = User.query.filter(User.id == id).first()
+
+      if not user:
+          return make_response(jsonify({"error":"User not found"},404))
+      
+      db.session.delete(user)
+      db.session.commit()
+
+      response_dict = {"Message":"User successfully deleted"}
+
+      return make_response(jsonify(response_dict),200)
+  
+
+  def change_password(self,id):
+      
+      user = User.query.get(id)
+
+      if not user:
+          return make_response(jsonify({"user":"User not found"}),404)
+      
+      data = request.get_json()
+
+      old_password = data.get('old_password')
+      new_password = data.get('new_password')
+
+      if not old_password or not user.authenticate(old_password):
+          return make_response(jsonify({"error":"Incorrect old password"}), 400)
+      
+      #Ensuring the new password is there and 8 characters long   
+      if not new_password or len(new_password) > 8:
+          return make_response(jsonify({"error":"Password must be at least 8 characters long"}),400)
+      
+      user.password_hash = new_password
+
+      db.session.add(user)
+      db.session.commit()
+
+      return make_response(jsonify({"message":"Password updated successfully"}),200)
+      
 api.add_resource(Users_by_ID, '/users/<int:id>')
+api.add_resource(Users_by_ID, '/users/<int:id>/change-password', endpoint='user_change_password')
 
 
 
