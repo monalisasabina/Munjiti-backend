@@ -217,7 +217,7 @@ class Users_by_ID(Resource):
     user = User.query.filter(User.id == id).first()
 
     if not user:
-      return make_response({'error':'User  not  found'},404)
+      return make_response(jsonify({'error':'User  not  found'}),404)
        
     user_dict= {
             "id":user.id,
@@ -225,12 +225,10 @@ class Users_by_ID(Resource):
             "email":user.email,
             "role":user.role
         }
-    return make_response(user_dict,200)
+    return make_response(jsonify(user_dict),200)
         
 
 api.add_resource(Users_by_ID, '/users/<int:id>')
-
-
 
 
 
