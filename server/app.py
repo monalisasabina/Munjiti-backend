@@ -2,16 +2,14 @@ from flask import Flask,make_response,request,jsonify,session
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from flask_cors import CORS
-from models import db, User, Pastor, Project, Ministry, MinistryProject, Notice, Downloads, ContactMessage, Notification, cipher
+from models import db, User, Pastor, Project, Ministry, MinistryProject, Notice, Downloads, ContactMessage, Notification, cipher, bcrypt
 
 import os
 from dotenv import load_dotenv
-dotenv_path = os.path.join(os.path.dirname(__file__), ".gitignore", ".env")
+dotenv_path = os.path.join(os.path.dirname(__file__), ".env")
 load_dotenv(dotenv_path, override=True)
 ADMIN_CODE = os.getenv("ADMIN_CODE")
 # print(f"Loaded ADMIN_CODE: {repr(ADMIN_CODE)}")  # Debugging statement
-
-from models import db,ContactMessage
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///church.db'
@@ -68,6 +66,9 @@ class Signup(Resource):
         # checking code
         if code != ADMIN_CODE:
           return {'error': 'Invalid admin code'},403
+        
+        if not ADMIN_CODE:
+            return {'error': 'Server error: ADMIN_CODE not set'},500
         
 
         # creating new user
@@ -164,9 +165,38 @@ class Logout(Resource):
 
 api.add_resource(Logout, '/logout', endpoint='logout')   
 
+class ChangePassword(Resource):
 
- 
-# USER CRUD
+     def patch(self,id):
+      
+      user = User.query.get(id)
+
+      if not user:
+          return make_response(jsonify({"user":"User not found"}),404)
+      
+      data = request.get_json()
+
+      old_password = data.get('old_password')
+      new_password = data.get('new_password')
+
+      if not old_password or not user.authenticate(old_password):
+          return make_response(jsonify({"error":"Incorrect old password"}), 400)
+      
+      #Ensuring the new password is there and 8 characters long   
+      if not new_password or len(new_password) < 8:
+          return make_response(jsonify({"error":"Password must be at least 8 characters long"}),400)
+      
+      user.password_hash = bcrypt.generate_password_hash(new_password).decode('utf-8')
+
+      db.session.commit()
+
+      return make_response(jsonify({"message":"Password updated successfully"}),200)
+     
+api.add_resource(ChangePassword, '/users/<int:id>/change-password', endpoint='user_change_password')     
+      
+
+
+# USER CRUD____________________________________________________________________________________________
 class Users(Resource):
     
     def get(self):
@@ -242,8 +272,7 @@ class Users_by_ID(Resource):
         try:
             for attr in data:
                 setattr(user, attr, data[attr])
-
-            db.session.add(user)    
+   
             db.session.commit()
 
             user_dict = {
@@ -263,7 +292,7 @@ class Users_by_ID(Resource):
       user = User.query.filter(User.id == id).first()
 
       if not user:
-          return make_response(jsonify({"error":"User not found"},404))
+          return make_response(jsonify({"error":"User not found"}),404)
       
       db.session.delete(user)
       db.session.commit()
@@ -273,34 +302,58 @@ class Users_by_ID(Resource):
       return make_response(jsonify(response_dict),200)
   
 
-  def change_password(self,id):
-      
-      user = User.query.get(id)
-
-      if not user:
-          return make_response(jsonify({"user":"User not found"}),404)
-      
-      data = request.get_json()
-
-      old_password = data.get('old_password')
-      new_password = data.get('new_password')
-
-      if not old_password or not user.authenticate(old_password):
-          return make_response(jsonify({"error":"Incorrect old password"}), 400)
-      
-      #Ensuring the new password is there and 8 characters long   
-      if not new_password or len(new_password) > 8:
-          return make_response(jsonify({"error":"Password must be at least 8 characters long"}),400)
-      
-      user.password_hash = new_password
-
-      db.session.add(user)
-      db.session.commit()
-
-      return make_response(jsonify({"message":"Password updated successfully"}),200)
-      
+ 
 api.add_resource(Users_by_ID, '/users/<int:id>')
-api.add_resource(Users_by_ID, '/users/<int:id>/change-password', endpoint='user_change_password')
+
+
+# Pastor CRUD_________________________________________________________________________________________
+class Pastors(Resource):
+
+    def get(self):
+
+        pastors_list=[]
+
+        for pastor in Pastor.query.all():
+
+            pastor_dict = {
+                "id":pastor.id,
+                "firstname":pastor.firstname,
+                "lastname": pastor.lastname,
+                "image":pastor.image,
+                "role":pastor.role,
+                "description":pastor.description,
+                "date_added":pastor.date_added,
+            }
+
+            pastors_list.append(pastor_dict)
+
+        return make_response(jsonify(pastors_list),200)
+    
+
+    def post(self):
+
+        try:
+            data = request.get_json()
+
+            new_pastor = Pastor(
+                firstname = data['firstname'],
+                lastname = data['lastname'],
+                role = data['role'],
+                image = data['image'],
+                description = data['description'],
+            )
+
+            db.session.add(new_pastor)
+            db.session.commit()
+
+            return make_response(new_pastor.to_dict(),201)
+        
+        except Exception as e:
+            return make_response({'errors':['validation errors', str(e)]}, 403)
+
+
+api.add_resource(Pastors, '/pastors')    
+
 
 
 
