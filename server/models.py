@@ -87,6 +87,9 @@ class Project(db.Model, SerializerMixin):
      ministries = db.relationship('MinistryProject', back_populates= 'project')
      images = db.relationship('ProjectImage', back_populates='project', cascade="all, delete-orphan")
 
+     # Prevent circular reference by excluding 'project' from serialization
+     serialize_rules = ('-ministries.project', '-images.project') 
+
      #validations
      @validates('date_added')
      def validate_date_added(self, key, date_added):
@@ -96,6 +99,7 @@ class Project(db.Model, SerializerMixin):
 
      def __repr__(self):
          return f"<Project: Name:{self.name} | Date Added: {self.date_added} >"   
+     
 
 class ProjectImage(db.Model, SerializerMixin):
     __tablename__='project_images'
@@ -106,6 +110,9 @@ class ProjectImage(db.Model, SerializerMixin):
 
     # Relation with the project
     project = db.relationship('Project', back_populates='images')
+
+    # Prevent circular reference
+    serialize_rules = ('-project.images',)
 
 
 

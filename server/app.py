@@ -429,25 +429,28 @@ api.add_resource(Pastors_by_ID, '/pastors/<int:id>')
 #Projects CRUD_____________________________________________________________________________________________________________________________________________
 class Projects(Resource):
 
-    # def get(self):
+    def get(self):
 
-    #     projects_list=[]
+        projects_list=[]
 
-    #     for project in Project.query.all():
+        for project in Project.query.all():
 
-    #         project_dict = {
-    #             "id":project.id,
-    #             "name":project.name,
-    #             "lastname": pastor.lastname,
-    #             "description":pastor.description,
-    #             "date_added":pastor.date_added,
-    #         }
+            project_dict = {
+                "id":project.id,
+                "name":project.name,
+                "description":project.description,
+                "date_added":project.date_added,
+                "ministries": [ministry.to_dict(rules=('-project',)) for ministry in project.ministries] if project.ministries else [],
+                "images": [image.to_dict(rules=('-project',)) for image in project.images] if project.images else []
+            }
 
-    #         pastors_list.append(pastor_dict)
+            # OR
+            # project_dict = project.to_dict(rules=('-ministries.project', '-images.project'))
 
-    #     return make_response(jsonify(pastors_list),200)
+            projects_list.append(project_dict)
 
-    pass
+        return make_response(jsonify(projects_list),200)
+
 
 api.add_resource(Projects, '/projects')
 

@@ -1,5 +1,5 @@
 from app import app
-from models import db, User, Pastor, Project, Ministry, MinistryProject, Notice, Downloads, ContactMessage, Notification, cipher
+from models import db, ProjectImage , User, Pastor, Project, Ministry, MinistryProject, Notice, Downloads, ContactMessage, Notification, cipher
 
 
 with app.app_context():
@@ -53,6 +53,17 @@ with app.app_context():
             Project(name="Children's Ministry", description="Supporting children's education."),
         ]
     db.session.add_all(projects)
+
+     # Seeding Project Images
+    print("Adding Project Images...")
+    project_images = [
+        ProjectImage(project_id=1, image_url="renovation1.jpg"),
+        ProjectImage(project_id=1, image_url="renovation2.jpg"),
+        ProjectImage(project_id=2, image_url="feeding1.jpg"),
+        ProjectImage(project_id=3, image_url="youth1.jpg"),
+        ProjectImage(project_id=4, image_url="mission1.jpg"),
+    ]
+    db.session.add_all(project_images)
 
 
     # Seeding Ministries
