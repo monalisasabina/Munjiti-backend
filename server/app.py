@@ -350,9 +350,106 @@ class Pastors(Resource):
         
         except Exception as e:
             return make_response({'errors':['validation errors', str(e)]}, 403)
+        
 
 
 api.add_resource(Pastors, '/pastors')    
+
+
+class Pastors_by_ID(Resource):
+
+    def get(self,id):
+
+        pastor = Pastor.query.filter(Pastor.id == id).first()
+
+        if not pastor:
+           return make_response(jsonify({'error':'Pastor  not  found'}),404)
+       
+        pastor_dict= {
+            "id":pastor.id,
+            "firstname":pastor.firstname,
+            "lastname": pastor.lastname,
+            "image": pastor.image,
+            "role":pastor.role,
+            "description": pastor.description
+        }
+
+        return make_response(jsonify(pastor_dict),200)
+    
+
+    # Updating the pastor by ID
+    def patch(self,id):
+
+        pastor = Pastor.query.filter(Pastor.id == id).first()
+
+        data =  request.get_json()
+        
+        if not pastor:
+            return make_response(jsonify({"error":"Pastor not found"}),404)
+        
+        if not data:
+            return make_response(jsonify({"error": "Invalid JSON format"}),400)
+
+        try:
+            for attr in data:
+                setattr(pastor, attr, data[attr])
+   
+            db.session.commit()
+
+            pastor_dict= {
+                "firstname":pastor.firstname,
+                "lastname": pastor.lastname,
+                "image": pastor.image,
+                "role":pastor.role,
+                "description": pastor.description
+            }
+
+            return make_response(jsonify(pastor_dict), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"error":"validation errors", "details": str(e)}),400)
+        
+    def delete(self,id):
+      
+      pastor = Pastor.query.filter(Pastor.id == id).first()
+
+      if not pastor:
+          return make_response(jsonify({"error":"Pastor not found"}),404)
+      
+      db.session.delete(pastor)
+      db.session.commit()
+
+      response_dict = {"Message":"Pastor successfully deleted"}
+
+      return make_response(jsonify(response_dict),200)
+        
+
+api.add_resource(Pastors_by_ID, '/pastors/<int:id>')   
+
+#Projects CRUD_____________________________________________________________________________________________________________________________________________
+class Projects(Resource):
+
+    # def get(self):
+
+    #     projects_list=[]
+
+    #     for project in Project.query.all():
+
+    #         project_dict = {
+    #             "id":project.id,
+    #             "name":project.name,
+    #             "lastname": pastor.lastname,
+    #             "description":pastor.description,
+    #             "date_added":pastor.date_added,
+    #         }
+
+    #         pastors_list.append(pastor_dict)
+
+    #     return make_response(jsonify(pastors_list),200)
+
+    pass
+
+api.add_resource(Projects, '/projects')
 
 
 
