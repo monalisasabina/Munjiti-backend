@@ -85,6 +85,7 @@ class Project(db.Model, SerializerMixin):
     
      # Relationship
      ministries = db.relationship('MinistryProject', back_populates= 'project')
+     images = db.relationship('ProjectImage', back_populates='project', cascade="all, delete-orphan")
 
      #validations
      @validates('date_added')
@@ -95,6 +96,16 @@ class Project(db.Model, SerializerMixin):
 
      def __repr__(self):
          return f"<Project: Name:{self.name} | Date Added: {self.date_added} >"   
+
+class ProjectImage(db.Model, SerializerMixin):
+    __tablename__='project_images'
+
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id', ondelete="CASCADE"), nullable=False)
+    image_url = db.Column(db.String, nullable=False)
+
+    # Relation with the project
+    project = db.relationship('Project', back_populates='images')
 
 
 
