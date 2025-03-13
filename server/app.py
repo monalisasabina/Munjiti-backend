@@ -196,7 +196,7 @@ api.add_resource(ChangePassword, '/users/<int:id>/change-password', endpoint='us
       
 
 
-# USER CRUD____________________________________________________________________________________________
+# USER CRUD______________________________________________________________________________________________________________________________________________
 class Users(Resource):
     
     def get(self):
@@ -306,9 +306,10 @@ class Users_by_ID(Resource):
 api.add_resource(Users_by_ID, '/users/<int:id>')
 
 
-# Pastor CRUD_________________________________________________________________________________________
+# Pastor CRUD_____________________________________________________________________________________________________________________________________________
 class Pastors(Resource):
 
+    # Fetching all the pastors
     def get(self):
 
         pastors_list=[]
@@ -329,7 +330,7 @@ class Pastors(Resource):
 
         return make_response(jsonify(pastors_list),200)
     
-
+    # Adding new pastor
     def post(self):
 
         try:
@@ -358,6 +359,7 @@ api.add_resource(Pastors, '/pastors')
 
 class Pastors_by_ID(Resource):
 
+    # Fetching a pastor by ID
     def get(self,id):
 
         pastor = Pastor.query.filter(Pastor.id == id).first()
@@ -409,6 +411,7 @@ class Pastors_by_ID(Resource):
         except Exception as e:
             return make_response(jsonify({"error":"validation errors", "details": str(e)}),400)
         
+    #Deleting a pastor 
     def delete(self,id):
       
       pastor = Pastor.query.filter(Pastor.id == id).first()
@@ -426,9 +429,11 @@ class Pastors_by_ID(Resource):
 
 api.add_resource(Pastors_by_ID, '/pastors/<int:id>')   
 
+
 #Projects CRUD_____________________________________________________________________________________________________________________________________________
 class Projects(Resource):
-
+    
+    # Fetching all projects
     def get(self):
 
         projects_list=[]
@@ -450,11 +455,98 @@ class Projects(Resource):
             projects_list.append(project_dict)
 
         return make_response(jsonify(projects_list),200)
+    
+    # Adding new project
+    def post(self):
 
+        try:
+            data = request.get_json()
+
+            new_project = Project(
+                name = data['name'],
+                description = data['description'] 
+            )
+
+            db.session.add(new_project)
+            db.session.commit()
+
+            return make_response(new_project.to_dict(rules=('-ministries.project', '-images.project')),201)
+            # The rules=('-ministries.project', '-images.project') removes circular relationships that would cause serialization issues.
+            # Avoiding TypeError with to_dict().
+
+        except Exception as e:
+            return make_response({'errors':['validation errors', str(e)]}, 403)
 
 api.add_resource(Projects, '/projects')
 
 
+class Project_By_ID(Resource):
+
+    # Fetching a project by ID
+    def get(self,id):
+
+        project = Project.query.filter(Project.id == id).first()
+
+        if not project:
+           return make_response(jsonify({'error':'Project not found'}),404)
+       
+        pastor_dict= {
+            "id":project.id,
+            "name":project.name,
+            "description": project.description,
+            "ministries": [ministry.to_dict(rules=('-project',)) for ministry in project.ministries] if project.ministries else [],
+            "images": [image.to_dict(rules=('-project',)) for image in project.images] if project.images else []   
+        }
+
+        return make_response(jsonify(pastor_dict),200)
+    
+    # Updating the project by ID
+    def patch(self,id):
+
+        project = Project.query.filter(Project.id == id).first()
+
+        data =  request.get_json()
+        
+        if not project:
+            return make_response(jsonify({"error":"Project not found"}),404)
+        
+        if not data:
+            return make_response(jsonify({"error": "Invalid JSON format"}),400)
+
+        try:
+            for attr in data:
+                setattr(project, attr, data[attr])
+   
+            db.session.commit()
+
+            project_dict= {
+                "name":project.name,
+                "description": project.description
+            }
+
+            return make_response(jsonify(project_dict), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"error":"validation errors", "details": str(e)}),400)
+        
+
+    #Deleting a project 
+    def delete(self,id):
+      
+      project = Project.query.filter(Project.id == id).first()
+
+      if not project:
+          return make_response(jsonify({"error":"Project not found"}),404)
+      
+      db.session.delete(project)
+      db.session.commit()
+
+      response_dict = {"Message":"Project successfully deleted"}
+
+      return make_response(jsonify(response_dict),200)
+        
+        
+api.add_resource(Project_By_ID, '/projects/<int:id>')
 
 
 if __name__ == '__main__':
