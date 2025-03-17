@@ -17,6 +17,7 @@ with app.app_context():
     Downloads.query.delete()
     ContactMessage.query.delete()
     Notification.query.delete()
+    ProjectImage.query.delete()
 
 
     # Seeding Users

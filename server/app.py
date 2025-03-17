@@ -2,7 +2,7 @@ from flask import Flask,make_response,request,jsonify,session
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from flask_cors import CORS
-from models import db, User, Pastor, Project, Ministry, MinistryProject, Notice, Downloads, ContactMessage, Notification, cipher, bcrypt
+from models import db, User, Pastor, Project, Ministry, MinistryProject, Notice, Downloads, ContactMessage, Notification, ProjectImage, cipher, bcrypt
 
 import os
 from dotenv import load_dotenv
@@ -30,7 +30,9 @@ class Home(Resource):
             "Api_version":"v1",
             "available_endpoints":[
                 "/users",
-                "/pastors"
+                "/pastors",
+                "/projects",
+                "/projectimages"
             ]
         },200
 api.add_resource(Home,'/')
@@ -545,10 +547,59 @@ class Project_By_ID(Resource):
 
       return make_response(jsonify(response_dict),200)
         
-        
+
 api.add_resource(Project_By_ID, '/projects/<int:id>')
 
+# Project Pictures CRUD___________________________________________________________________________________________________________________________________
+class ProjectImages(Resource):
+ 
+    # Getting project images
+    def get(self):
+
+        projects_image_list=[]
+
+        for project_image in ProjectImage.query.all():
+
+            project_image_dict = {
+                "id":project_image.id,
+                "image_url":project_image.image_url,
+                "project_id":project_image.project_id,
+                "project":project_image.project.name if project_image.project else None
+            }
+
+            projects_image_list.append(project_image_dict)
+
+        return make_response(jsonify(projects_image_list),200)
+    
+    # Adding new project image
+    def post(self):
+
+        try:
+            data = request.get_json()
+            print("Received data:", data)
+
+            new_project_image = ProjectImage(
+                image_url=data['image_url'],
+                project_id=data['project_id']
+            )
+
+            db.session.add(new_project_image)
+            db.session.commit()
+
+            project_image_dict = new_project_image.to_dict()
+            print("Serialized project image:", project_image_dict)  # Debugging
+
+            response =jsonify(project_image_dict)
+            response.status_code = 201
+
+            return response 
+
+        except Exception as e:
+            print(f"Error details: {str(e)}")
+            return {'errors': ['validation errors', str(e)]}, 500
+    
+api.add_resource(ProjectImages, '/projectimages')
 
 if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+    app.run(port=5557, debug=True)
 
