@@ -130,3 +130,25 @@ with app.app_context():
     # Commit all changes
     db.session.commit()
     print("Database seeded successfully!")
+
+    # Fetch ministries and projects from the DB
+    ministries = Ministry.query.all()
+    projects = Project.query.all()
+
+    # Manually associate Ministries with Projects
+    print("\nLinking Ministries with Projects...")
+
+    # Example links (modify as needed)
+    ministry_project_links = [
+    MinistryProject(ministry_id=ministries[0].id, project_id=projects[0].id),  # Worship Ministry → Church Renovation
+    MinistryProject(ministry_id=ministries[1].id, project_id=projects[2].id),  # Youth Ministry → Youth Empowerment
+    MinistryProject(ministry_id=ministries[2].id, project_id=projects[4].id),  # Women Ministry → Children's Ministry
+    ]
+
+    # Add to the session
+    db.session.add_all(ministry_project_links)
+
+    # Commit changes
+    db.session.commit()
+    print("✅ Ministry-Project relationships added!")
+

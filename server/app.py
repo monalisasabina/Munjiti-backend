@@ -2,7 +2,7 @@ from flask import Flask,make_response,request,jsonify,session
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from flask_cors import CORS
-from models import db, User, Pastor, Project, Ministry, MinistryProject, Notice, Downloads, ContactMessage, Notification, ProjectImage, cipher, bcrypt
+from models import db, joinedload, User, Pastor, Project, Ministry, MinistryProject, Notice, Downloads, ContactMessage, Notification, ProjectImage, cipher, bcrypt
 
 import os
 from dotenv import load_dotenv
@@ -32,7 +32,8 @@ class Home(Resource):
                 "/users",
                 "/pastors",
                 "/projects",
-                "/projectimages"
+                "/projectimages",
+                "/ministries"
             ]
         },200
 api.add_resource(Home,'/')
@@ -600,6 +601,104 @@ class ProjectImages(Resource):
     
 api.add_resource(ProjectImages, '/projectimages')
 
+class ProjectImages_by_ID(Resource):
+
+    # Fetching project image by ID
+    def get(self,id):
+
+        project_image = ProjectImage.query.filter(ProjectImage.id == id).first()
+
+        if not project_image:
+           return make_response(jsonify({'error':'Project image not found'}),404)
+       
+        project_image_dict= {
+            "id":project_image.id,
+            "image_url":project_image.image_url,
+            "project_id":project_image.project_id
+        }
+
+        return make_response(jsonify(project_image_dict),200)
+    
+    # Updating the project image by ID
+    def patch(self,id):
+
+        project_image = ProjectImage.query.filter(ProjectImage.id == id).first()
+
+        data =  request.get_json()
+        
+        if not project_image:
+            return make_response(jsonify({"error":"Project image not found"}),404)
+        
+        if not data:
+            return make_response(jsonify({"error": "Invalid JSON format"}),400)
+
+        try:
+            for attr in data:
+                setattr(project_image, attr, data[attr])
+   
+            db.session.commit()
+
+            project_image_dict= {
+                "image_url":project_image.image_url,
+                "project_id":project_image.project_id
+            }
+
+            return make_response(jsonify(project_image_dict), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"error":"validation errors", "details": str(e)}),400)
+        
+    #Deleting a project image
+    def delete(self,id):
+      
+        project_image = ProjectImage.query.filter(ProjectImage.id == id).first()
+
+        if not project_image:
+          return make_response(jsonify({"error":"Project image not found"}),404)
+      
+        db.session.delete(project_image)
+        db.session.commit()
+
+        response_dict = {"Message":"Project image successfully deleted"}
+
+        return make_response(jsonify(response_dict),200)
+        
+api.add_resource(ProjectImages_by_ID, '/projectimages/<int:id>')
+
+
+# Ministry CRUD_______________________________________________________________________________________
+class MinistryResource(Resource):
+
+    # Getting ministries
+    def get(self):
+
+        ministries_list=[]
+
+        for ministry in Ministry.query.options(joinedload(Ministry.projects)).all():
+
+            print(f"Ministry: {ministry.name}, Projects: {ministry.projects}")
+
+            ministry_dict = {
+                "id":ministry.id,
+                "name":ministry.name,
+                "description":ministry.description,
+                "projects":[
+                    {
+                       "id":project.id,
+                       "name":project.name
+                    }
+                    for project in ministry.projects
+                ]
+            }
+
+            ministries_list.append(ministry_dict)
+
+        return make_response(jsonify(ministries_list),200)
+    
+
+api.add_resource(MinistryResource, '/ministries')    
+
+
 if __name__ == '__main__':
-    app.run(port=5557, debug=True)
+    app.run(port=5555, debug=True)
 

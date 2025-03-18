@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_serializer import SerializerMixin
-from sqlalchemy.orm import validates
+from sqlalchemy.orm import validates, joinedload
 from datetime import datetime
 from sqlalchemy.ext.hybrid import hybrid_property
 from flask_bcrypt import Bcrypt
@@ -84,7 +84,7 @@ class Project(db.Model, SerializerMixin):
      date_added = db.Column(db.DateTime, default=datetime.utcnow)
     
      # Relationship
-     ministries = db.relationship('MinistryProject', back_populates= 'project')
+     ministries = db.relationship('Ministry', secondary='ministry_projects', back_populates= 'projects')
      images = db.relationship('ProjectImage', back_populates='project', cascade="all, delete-orphan")
 
      # Prevent circular reference by excluding 'project' from serialization
@@ -125,8 +125,10 @@ class Ministry(db.Model, SerializerMixin):
     created_at = db.Column(db.String, nullable=False)
 
     # Relationship
-    projects = db.relationship('MinistryProject', back_populates='ministry')
-
+    projects = db.relationship('Project', secondary='ministry_projects', back_populates='ministries')
+    
+    serialize_rules = ('-projects.ministries',)  # Prevent circular references 
+    
     def __repr__(self):
         return f"<Ministry {self.name}>"
     
@@ -140,8 +142,8 @@ class MinistryProject(db.Model, SerializerMixin):
     ministry_id =db.Column(db.Integer, db.ForeignKey('ministries.id'), primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), primary_key=True)
 
-    ministry = db.relationship('Ministry', back_populates='projects')
-    project = db.relationship('Project', back_populates='ministries')
+    # ministry = db.relationship('Ministry', back_populates='projects')
+    # project = db.relationship('Project', back_populates='ministries')
 
     def __repr__(self):
         return f"<MinistryProject Ministry: {self.ministry_id}, Project: {self.project_id}>"
