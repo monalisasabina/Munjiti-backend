@@ -122,7 +122,7 @@ class Ministry(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     description = db.Column(db.String, nullable=False)
-    created_at = db.Column(db.String, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationship
     projects = db.relationship('Project', secondary='ministry_projects', back_populates='ministries')
@@ -139,8 +139,12 @@ class Ministry(db.Model, SerializerMixin):
 class MinistryProject(db.Model, SerializerMixin):
     __tablename__='ministry_projects'
 
-    ministry_id =db.Column(db.Integer, db.ForeignKey('ministries.id'), primary_key=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), primary_key=True)
+    serialize_rules = ('-ministry.projects', '-project.ministries') 
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    ministry_id =db.Column(db.Integer, db.ForeignKey('ministries.id'))
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'))
 
     # ministry = db.relationship('Ministry', back_populates='projects')
     # project = db.relationship('Project', back_populates='ministries')

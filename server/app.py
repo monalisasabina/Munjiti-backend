@@ -33,7 +33,8 @@ class Home(Resource):
                 "/pastors",
                 "/projects",
                 "/projectimages",
-                "/ministries"
+                "/ministries",
+                "/ministryproject"
             ]
         },200
 api.add_resource(Home,'/')
@@ -696,9 +697,222 @@ class MinistryResource(Resource):
         return make_response(jsonify(ministries_list),200)
     
 
+    # Adding new ministry image
+    def post(self):
+
+        try:
+            data = request.get_json()
+            print("Received data:", data)
+
+            new_ministry = Ministry(
+                name=data['name'],
+                description=data['description']
+            )
+
+            db.session.add(new_ministry)
+            db.session.commit()
+
+            new_ministry_dict = new_ministry.to_dict()
+
+            response =jsonify(new_ministry_dict)
+            response.status_code = 201
+
+            return response 
+
+        except Exception as e:
+            print(f"Error details: {str(e)}")
+            return {'errors': ['validation errors', str(e)]}, 500
+    
 api.add_resource(MinistryResource, '/ministries')    
 
 
+class MinistryByID(Resource):
+
+    # Fetching ministry by ID
+    def get(self,id):
+
+        ministry = Ministry.query.filter(Ministry.id == id).first()
+
+        if not ministry:
+           return make_response(jsonify({'error':'Ministry not found'}),404)
+       
+        ministry_dict= {
+            "id":ministry.id,
+            "name":ministry.name,
+            "description":ministry.description,
+            "projects": [ministry.to_dict(rules=('-ministry',)) for ministry in ministry.projects] if ministry.projects else [],
+        }
+
+        return make_response(jsonify(ministry_dict),200)
+    
+
+    # Updating a ministry by ID
+    def patch(self,id):
+
+        ministry = Ministry.query.filter(Ministry.id == id).first()
+
+        data =  request.get_json()
+        
+        if not ministry:
+            return make_response(jsonify({"error":"Ministry not found"}),404)
+        
+        if not data:
+            return make_response(jsonify({"error": "Invalid JSON format"}),400)
+
+        try:
+            for attr in data:
+                setattr(ministry, attr, data[attr])
+   
+            db.session.commit()
+
+            ministry_dict= {
+            "id":ministry.id,
+            "name":ministry.name,
+            "description":ministry.description,
+            }
+
+            return make_response(jsonify(ministry_dict), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"error":"validation errors", "details": str(e)}),400)
+        
+
+    #Deleting a ministry
+    def delete(self,id):
+      
+        ministry = Ministry.query.filter(Ministry.id == id).first()
+
+        if not ministry:
+          return make_response(jsonify({"error":"Ministry not found"}),404)
+      
+        db.session.delete(ministry)
+        db.session.commit()
+
+        response_dict = {"Message":"Ministry successfully deleted"}
+
+        return make_response(jsonify(response_dict),200)
+
+api.add_resource(MinistryByID, '/ministries/<int:id>')
+
+
+
+# MinistryProjects CRUD___________________________________________________________________________________
+class MinistyProjectsResource(Resource):
+
+    # Getting ministries
+    def get(self):
+
+        ministries_project_list=[]
+
+        for ministry_project_link in MinistryProject.query.all():
+
+            ministry_project_dict = {
+                 "ministry_id":ministry_project_link.ministry_id,
+                 "project_id":ministry_project_link.project_id
+
+            }
+
+            ministries_project_list.append(ministry_project_dict)
+
+        return make_response(jsonify(ministries_project_list),200)
+    
+
+    # Adding ministry_project link
+    def post(self):
+
+        try:
+            data = request.get_json()
+            print("Received data:", data)
+
+            new_ministry_project_link = MinistryProject(
+                ministry_id=data['ministry_id'],
+                project_id=data['project_id']
+            )
+
+            db.session.add(new_ministry_project_link)
+            db.session.commit()
+
+            ministry_project_dict = new_ministry_project_link.to_dict()
+            
+            response =jsonify(ministry_project_dict)
+            response.status_code = 201
+
+            return response 
+
+        except Exception as e:
+            print(f"Error details: {str(e)}")
+            return {'errors': ['validation errors', str(e)]}, 500
+    
+api.add_resource(MinistyProjectsResource, '/ministryproject')  
+
+
+class MinistryProjectByID(Resource):
+
+    # Fetching ministry_project by ID
+    def get(self,id):
+
+        ministry_project = MinistryProject.query.filter(MinistryProject.id == id).first()
+
+        if not ministry_project:
+           return make_response(jsonify({'error':'Ministry_Project link not found'}),404)
+       
+        ministry_project_dict= {
+            "id":ministry_project.id,
+            "ministry_id":ministry_project.ministry_id,
+            "project_id":ministry_project.project_id
+        }
+
+        return make_response(jsonify(ministry_project_dict),200)
+    
+
+    # Updating a ministry_project by ID
+    def patch(self,id):
+
+        ministry_project = MinistryProject.query.filter(MinistryProject.id == id).first()
+
+        data =  request.get_json()
+        
+        if not ministry_project:
+            return make_response(jsonify({"error":"Ministry_Project link not found"}),404)
+        
+        if not data:
+            return make_response(jsonify({"error": "Invalid JSON format"}),400)
+
+        try:
+            for attr in data:
+                setattr(ministry_project, attr, data[attr])
+   
+            db.session.commit()
+
+            ministry_project_dict= {
+                "id":ministry_project.id,
+                "ministry_id":ministry_project.ministry_id,
+                "project_id":ministry_project.project_id
+            }
+
+            return make_response(jsonify(ministry_project_dict), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"error":"validation errors", "details": str(e)}),400)
+        
+
+    #Deleting a ministry_project_link
+    def delete(self,id):
+      
+        ministry_project = MinistryProject.query.filter(MinistryProject.id == id).first()
+
+        if not ministry_project:
+          return make_response(jsonify({"error":"Ministry_Project link not found"}),404)
+      
+        db.session.delete(ministry_project)
+        db.session.commit()
+
+        response_dict = {"Message":"Ministry_Project link successfully deleted"}
+
+        return make_response(jsonify(response_dict),200)
+
+api.add_resource(MinistryProjectByID, '/ministryproject/<int:id>')
+
 if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+    app.run(port=5556, debug=True)
 

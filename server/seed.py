@@ -70,11 +70,11 @@ with app.app_context():
     # Seeding Ministries
     print('Adding ministries')
     ministries = [
-            Ministry(name="Worship Ministry", description="Handles church worship and praise.", created_at="2024-01-01"),
-            Ministry(name="Youth Ministry", description="Engages youth in church programs.", created_at="2024-01-02"),
-            Ministry(name="Women Ministry", description="Supports women in the church.", created_at="2024-01-03"),
-            Ministry(name="Men's Fellowship", description="Encourages men to be active in church.", created_at="2024-01-04"),
-            Ministry(name="Children Ministry", description="Takes care of children in the church.", created_at="2024-01-05"),
+            Ministry(name="Worship Ministry", description="Handles church worship and praise."),
+            Ministry(name="Youth Ministry", description="Engages youth in church programs."),
+            Ministry(name="Women Ministry", description="Supports women in the church."),
+            Ministry(name="Men's Fellowship", description="Encourages men to be active in church."),
+            Ministry(name="Children Ministry", description="Takes care of children in the church."),
         ]
     db.session.add_all(ministries)
 
@@ -127,16 +127,12 @@ with app.app_context():
     db.session.add_all(notifications)
 
 
-    # Commit all changes
-    db.session.commit()
-    print("Database seeded successfully!")
-
     # Fetch ministries and projects from the DB
     ministries = Ministry.query.all()
     projects = Project.query.all()
 
     # Manually associate Ministries with Projects
-    print("\nLinking Ministries with Projects...")
+    print("Linking Ministries with Projects...")
 
     # Example links (modify as needed)
     ministry_project_links = [
@@ -148,7 +144,16 @@ with app.app_context():
     # Add to the session
     db.session.add_all(ministry_project_links)
 
-    # Commit changes
-    db.session.commit()
     print("✅ Ministry-Project relationships added!")
+
+    # Commit all changes
+    db.session.commit()
+    print("\nDatabase seeded successfully!")
+
+    print("\nMinistries")
+    print(ministries)
+    print("\nProjects")
+    print(projects)
+
+   
 
