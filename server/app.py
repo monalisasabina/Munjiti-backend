@@ -34,7 +34,8 @@ class Home(Resource):
                 "/projects",
                 "/projectimages",
                 "/ministries",
-                "/ministryproject"
+                "/ministryproject",
+                "/notices"
             ]
         },200
 api.add_resource(Home,'/')
@@ -667,7 +668,7 @@ class ProjectImages_by_ID(Resource):
 api.add_resource(ProjectImages_by_ID, '/projectimages/<int:id>')
 
 
-# Ministry CRUD_______________________________________________________________________________________
+# Ministry CRUD___________________________________________________________________________________________________________________________________________
 class MinistryResource(Resource):
 
     # Getting ministries
@@ -796,7 +797,7 @@ api.add_resource(MinistryByID, '/ministries/<int:id>')
 
 
 
-# MinistryProjects CRUD___________________________________________________________________________________
+# MinistryProjects CRUD___________________________________________________________________________________________________________________________________
 class MinistyProjectsResource(Resource):
 
     # Getting ministries
@@ -913,6 +914,131 @@ class MinistryProjectByID(Resource):
 
 api.add_resource(MinistryProjectByID, '/ministryproject/<int:id>')
 
+
+# Notices CRUD___________________________________________________________________________________________________________________________________________
+class NoticeResource(Resource):
+
+    # Fetching notices
+    def get(self):
+
+        notices_list=[]
+
+        for notice in Notice.query.all():
+
+            notice_dict = {
+                "id":notice.id,
+                "title":notice.title,
+                "notice_text":notice.notice_text,
+                "image":notice.image,
+                "date_added":notice.date_added
+        
+            }
+
+            notices_list.append(notice_dict)
+
+        return make_response(jsonify(notices_list),200)
+    
+
+    # Adding new ministry image
+    def post(self):
+
+        try:
+            data = request.get_json()
+            print("Received data:", data)
+
+            new_notice = Notice(
+                title=data['title'],
+                notice_text=data['notice_text'],
+                image=data['image'],
+            )
+
+            db.session.add(new_notice)
+            db.session.commit()
+
+            new_notice_dict = new_notice.to_dict()
+
+            response =jsonify(new_notice_dict)
+            response.status_code = 201
+
+            return response 
+
+        except Exception as e:
+            print(f"Error details: {str(e)}")
+            return {'errors': ['validation errors', str(e)]}, 500
+        
+
+api.add_resource(NoticeResource, '/notices')
+
+class NoticeById(Resource):
+
+    # Fetching notice by ID
+    def get(self,id):
+
+        notice = Notice.query.filter(Notice.id == id).first()
+
+        if not notice:
+           return make_response(jsonify({'error':'Notice not found'}),404)
+        
+        notice_dict = {
+                "id":notice.id,
+                "title":notice.title,
+                "notice_text":notice.notice_text,
+                "image":notice.image,
+                "date_added":notice.date_added
+        }
+       
+        return make_response(jsonify(notice_dict),200)
+
+
+    # Updating a notice by ID
+    def patch(self,id):
+
+        notice = Notice.query.filter(Notice.id == id).first()
+
+        data =  request.get_json()
+        
+        if not notice:
+            return make_response(jsonify({"error":"Notice not found"}),404)
+        
+        if not data:
+            return make_response(jsonify({"error": "Invalid JSON format"}),400)
+
+        try:
+            for attr in data:
+                setattr(notice, attr, data[attr])
+   
+            db.session.commit()
+
+            notice_dict = {
+                "title":notice.title,
+                "notice_text":notice.notice_text,
+                "image":notice.image,   
+            }
+
+            return make_response(jsonify(notice_dict), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"error":"validation errors", "details": str(e)}),400)
+        
+
+    #Deleting a notice
+    def delete(self,id):
+      
+        notice = Notice.query.filter(Notice.id == id).first()
+
+        if not notice:
+          return make_response(jsonify({"error":"Notice not found"}),404)
+      
+        db.session.delete(notice)
+        db.session.commit()
+
+        response_dict = {"Message":"Notice successfully deleted"}
+
+        return make_response(jsonify(response_dict),200)
+        
+
+api.add_resource(NoticeById, '/notices/<int:id>')    
+
 if __name__ == '__main__':
-    app.run(port=5556, debug=True)
+    app.run(port=5555, debug=True)
 
