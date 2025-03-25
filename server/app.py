@@ -35,9 +35,11 @@ class Home(Resource):
                 "/projectimages",
                 "/ministries",
                 "/ministryproject",
-                "/notices"
+                "/notices",
+                "/downloads",
             ]
         },200
+    
 api.add_resource(Home,'/')
 
 
@@ -1036,8 +1038,132 @@ class NoticeById(Resource):
 
         return make_response(jsonify(response_dict),200)
         
+ 
+api.add_resource(NoticeById, '/notices/<int:id>')      
 
-api.add_resource(NoticeById, '/notices/<int:id>')    
+# Downloads CRUD________________________________________________________________________________________________________________________________________
+
+class DownloadsResource(Resource):
+    
+    # Fetching downloads
+    def get(self):
+
+        downloads_list=[]
+
+        for download in Downloads.query.all():
+
+            download_dict = {
+                "id":download.id,
+                "name":download.name,
+                "description":download.description,
+                "file_url":download.file_url,
+                "date_added":download.date_added
+            }
+
+            downloads_list.append(download_dict)
+
+        return make_response(jsonify(downloads_list),200)
+    
+    # Adding new download
+    def post(self):
+
+        try:
+            data = request.get_json()
+            print("Received data:", data)
+
+            new_download = Downloads(
+                name=data['name'],
+                description=data['description'],
+                file_url=data['file_url'],
+            )
+
+            db.session.add(new_download)
+            db.session.commit()
+
+            new_download_dict = new_download.to_dict()
+
+            response =jsonify(new_download_dict)
+            response.status_code = 201
+
+            return response 
+
+        except Exception as e:
+            print(f"Error details: {str(e)}")
+            return {'errors': ['validation errors', str(e)]}, 500
+
+
+api.add_resource(DownloadsResource, '/downloads')    
+
+
+class DownloadsById(Resource):
+
+    # Fetching download by ID
+    def get(self,id):
+
+        download = Downloads.query.filter(Downloads.id == id).first()
+
+        if not download:
+           return make_response(jsonify({'error':'Download not found'}),404)
+        
+        download_dict = {
+                "id":download.id,
+                "name":download.name,
+                "description":download.description,
+                "file_url":download.file_url,
+                "date_added":download.date_added
+            }
+        
+        return make_response(jsonify(download_dict),200)
+    
+    # Updating a notice by ID
+    def patch(self,id):
+
+        download = Downloads.query.filter(Downloads.id == id).first()
+
+        data =  request.get_json()
+        
+        if not download:
+            return make_response(jsonify({"error":"Download not found"}),404)
+        
+        if not data:
+            return make_response(jsonify({"error": "Invalid JSON format"}),400)
+
+        try:
+            for attr in data:
+                setattr(download, attr, data[attr])
+   
+            db.session.commit()
+
+            download_dict = {
+                "name":download.name,
+                "description":download.description,
+                "file_url":download.file_url,
+            }
+
+            return make_response(jsonify(download_dict), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"error":"validation errors", "details": str(e)}))
+        
+
+    #Deleting a download
+    def delete(self,id):
+      
+        download = Downloads.query.filter(Downloads.id == id).first()
+
+        if not download:
+          return make_response(jsonify({"error":"Download not found"}),404)
+      
+        db.session.delete(download)
+        db.session.commit()
+
+        response_dict = {"Message":"Download successfully deleted"}
+
+        return make_response(jsonify(response_dict),200)
+    
+
+api.add_resource(DownloadsById, '/downloads/<int:id>')
+
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
