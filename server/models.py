@@ -205,6 +205,7 @@ class ContactMessage(db.Model,SerializerMixin):
     email = db.Column(db.String, nullable=False)
     _mobile_number = db.Column(db.String) #store encrypted data
     message = db.Column(db.String, nullable=False)
+    date_added = db.Column(db.DateTime, default=datetime.utcnow)
  
     @hybrid_property
     def mobile_number(self):

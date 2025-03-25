@@ -37,6 +37,7 @@ class Home(Resource):
                 "/ministryproject",
                 "/notices",
                 "/downloads",
+                "/contactmessage",
             ]
         },200
     
@@ -1163,6 +1164,141 @@ class DownloadsById(Resource):
     
 
 api.add_resource(DownloadsById, '/downloads/<int:id>')
+
+
+
+# ContactMessage CRUD____________________________________________________________________________________________________________________________________
+
+class ContactMessageResource(Resource):
+
+     # Fetching constact messages
+    def get(self):
+
+        contact_messages_list=[]
+
+        for contact_message in ContactMessage.query.all():
+
+            contact_message_dict = {
+                "id":contact_message.id,
+                "sender_firstname":contact_message.sender_firstname,
+                "sender_lastname":contact_message.sender_lastname,
+                "email":contact_message.email,
+                # "mobile_number":contact_message._mobile_number,
+                "message":contact_message.message,
+                "date_added":contact_message.date_added
+            }
+
+            contact_messages_list.append(contact_message_dict)
+
+        return make_response(jsonify(contact_messages_list),200)
+    
+    # Adding new download
+    def post(self):
+
+        try:
+            data = request.get_json()
+            print("Received data:", data)
+
+            new_contact_message = ContactMessage(
+                sender_firstname=data['sender_firstname'],
+                sender_lastname=data['sender_lastname'],
+                email=data['email'],
+                _mobile_number=data['mobile_number'],
+                message=data['message'],
+            )
+
+            db.session.add(new_contact_message)
+            db.session.commit()
+
+            new_contact_message_dict = new_contact_message.to_dict()
+
+            response =jsonify(new_contact_message_dict)
+            response.status_code = 201
+
+            return response 
+
+        except Exception as e:
+            print(f"Error details: {str(e)}")
+            return {'errors': ['validation errors', str(e)]}, 500
+
+
+api.add_resource(ContactMessageResource, '/contactmessage')
+
+
+class ContactMessage_By_Id(Resource):
+
+    # Fetching contact message by ID
+    def get(self,id):
+
+        contact_message = ContactMessage.query.filter(ContactMessage.id == id).first()
+
+        if not contact_message:
+           return make_response(jsonify({'error':'Message not found'}),404)
+        
+        contact_message_dict = {
+                "id":contact_message.id,
+                "sender_firstname":contact_message.sender_firstname,
+                "sender_lastname":contact_message.sender_lastname,
+                "email":contact_message.email,
+                # "_mobile.number":contact_message._mobile_number,
+                "message":contact_message.message,
+                "date_added":contact_message.date_added
+            }
+        
+        return make_response(jsonify(contact_message_dict),200)
+    
+    # Updating a message by ID
+    def patch(self,id):
+
+        contact_message = ContactMessage.query.filter(ContactMessage.id == id).first()
+
+        data =  request.get_json()
+        
+        if not contact_message:
+            return make_response(jsonify({"error":"Message not found"}),404)
+        
+        if not data:
+            return make_response(jsonify({"error": "Invalid JSON format"}),400)
+        
+        print("Updated Data:", data)
+
+        try:
+            for attr in data:
+                setattr(contact_message, attr, data[attr])
+   
+            db.session.commit()
+
+            contact_message_dict = {
+                "sender_firstname":contact_message.sender_firstname,
+                "sender_lastname":contact_message.sender_lastname,
+                "email":contact_message.email,
+                # "_mobile.number":contact_message._mobile_number,
+                "message":contact_message.message,
+            }
+
+            return make_response(jsonify(contact_message_dict), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"error":"validation errors", "details": str(e)}))
+        
+    #Deleting a contact message
+    def delete(self,id):
+      
+        contact_message = ContactMessage.query.filter(ContactMessage.id == id).first()
+
+        if not contact_message:
+          return make_response(jsonify({"error":"Message not found"}),404)
+      
+        db.session.delete(contact_message)
+        db.session.commit()
+
+        response_dict = {"Message":"Message successfully deleted"}
+
+        return make_response(jsonify(response_dict),200)
+    
+
+api.add_resource(ContactMessage_By_Id, '/contactmessage/<int:id>')
+
 
 
 if __name__ == '__main__':
