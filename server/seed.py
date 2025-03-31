@@ -106,11 +106,11 @@ with app.app_context():
     # Seeding Contact Messages
     print("Adding contact messages")
     messages = [
-            ContactMessage(sender_firstname="Alice", sender_lastname="Brown", email="alice@example.com", _mobile_number=cipher.encrypt("1234567890".encode()), message="Need prayer support."),
-            ContactMessage(sender_firstname="Bob", sender_lastname="Green", email="bob@example.com", _mobile_number=cipher.encrypt("0987654321".encode()), message="Want to volunteer."),
-            ContactMessage(sender_firstname="Charlie", sender_lastname="Blue", email="charlie@example.com", _mobile_number=cipher.encrypt("1122334455".encode()), message="Looking for a church."),
-            ContactMessage(sender_firstname="Diana", sender_lastname="Black", email="diana@example.com", _mobile_number=cipher.encrypt("6677889900".encode()), message="Inquiry about donations."),
-            ContactMessage(sender_firstname="Ethan", sender_lastname="White", email="ethan@example.com", _mobile_number=cipher.encrypt("5566778899".encode()), message="Prayer request."),
+            ContactMessage(sender_firstname="Alice", sender_lastname="Brown", email="alice@example.com", mobile_number=1234567890, message="Need prayer support."),
+            ContactMessage(sender_firstname="Bob", sender_lastname="Green", email="bob@example.com", mobile_number=987654321, message="Want to volunteer."),
+            ContactMessage(sender_firstname="Charlie", sender_lastname="Blue", email="charlie@example.com", mobile_number=1122334455, message="Looking for a church."),
+            ContactMessage(sender_firstname="Diana", sender_lastname="Black", email="diana@example.com", mobile_number=6677889900, message="Inquiry about donations."),
+            ContactMessage(sender_firstname="Ethan", sender_lastname="White", email="ethan@example.com", mobile_number=5566778899, message="Prayer request."),
         ]
     db.session.add_all(messages)
 
@@ -118,11 +118,11 @@ with app.app_context():
     # Seeding Notifications
     print("Adding notifications...")
     notifications = [
-            Notification(user_id=1, message="Welcome to the church website!"),
-            Notification(user_id=2, message="Your request has been received."),
-            Notification(user_id=3, message="Upcoming events this weekend."),
-            Notification(user_id=4, message="New notice added to the board."),
-            Notification(user_id=5, message="Thank you for your donation."),
+            Notification(message="Welcome to the church website!", contact_message_id=1, is_read=True),
+            Notification(message="Your request has been received.", contact_message_id=2, is_read=False ),
+            Notification(message="Upcoming events this weekend.", contact_message_id=3, is_read=True),
+            Notification(message="New notice added to the board.", contact_message_id=4, is_read=False),
+            Notification(message="Thank you for your donation.",contact_message_id=5, is_read=True),
         ]
     db.session.add_all(notifications)
 

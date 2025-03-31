@@ -203,20 +203,11 @@ class ContactMessage(db.Model,SerializerMixin):
     sender_firstname = db.Column(db.String(50), nullable=False)
     sender_lastname = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String, nullable=False)
-    _mobile_number = db.Column(db.String) #store encrypted data
+    mobile_number = db.Column(db.String) 
     message = db.Column(db.String, nullable=False)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
- 
-    @hybrid_property
-    def mobile_number(self):
-        if self._mobile_number:
-            return cipher.decrypt(self._mobile_number.encode()).decode()
-        return None
-    
-    @mobile_number.setter
-    def mobile_number(self, number):
-        self._mobile_number = cipher.encrypt(str(number).encode()).decode()
 
+    notifications = db.relationship("Notification", back_populates="contact_message", lazy=True)
 
     def __repr__(self):
         return f"<Message from {self.sender_firstname} {self.sender_lastname}>"
@@ -230,9 +221,12 @@ class Notification(db.Model, SerializerMixin):
     message = db.Column(db.String(255), nullable=True)
     is_read = db.Column(db.Boolean, default=False)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Foreign Contact_message ID
+    contact_message_id = db.Column(db.Integer, db.ForeignKey('messages.id'), nullable=False)
 
-    #Foreign key 
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    # Relation between contact message and notification
+    contact_message = db.relationship('ContactMessage', back_populates='notifications')
 
     #validations
     @validates('date_added')

@@ -3,6 +3,7 @@ from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from flask_cors import CORS
 from models import db, joinedload, User, Pastor, Project, Ministry, MinistryProject, Notice, Downloads, ContactMessage, Notification, ProjectImage, cipher, bcrypt
+from sqlalchemy.exc import SQLAlchemyError
 
 import os
 from dotenv import load_dotenv
@@ -37,7 +38,8 @@ class Home(Resource):
                 "/ministryproject",
                 "/notices",
                 "/downloads",
-                "/contactmessage",
+                "/contactmessages",
+                "/notifications",
             ]
         },200
     
@@ -1222,7 +1224,7 @@ class ContactMessageResource(Resource):
             return {'errors': ['validation errors', str(e)]}, 500
 
 
-api.add_resource(ContactMessageResource, '/contactmessage')
+api.add_resource(ContactMessageResource, '/contactmessages')
 
 
 class ContactMessage_By_Id(Resource):
@@ -1297,8 +1299,75 @@ class ContactMessage_By_Id(Resource):
         return make_response(jsonify(response_dict),200)
     
 
-api.add_resource(ContactMessage_By_Id, '/contactmessage/<int:id>')
+api.add_resource(ContactMessage_By_Id, '/contactmessages/<int:id>')
 
+
+# Notifications CRUD_____________________________________________________________________________________________________________________________________
+
+class Notification_Resource(Resource):
+
+    # Fetching notifications
+    def get(self):
+
+        notifications_list=[]
+
+        for notification in Notification.query.all():
+
+            notification_dict = {
+                "id":notification.id,
+                # "message":notification.message,
+                "is_read":notification.is_read,
+                "date_added":notification.date_added,
+                "contact_message":{
+                    "id":notification.contact_message.id,
+                    "sender_firstname":notification.contact_message.sender_firstname,
+                    "message":notification.contact_message.message,
+                }
+            }
+
+            notifications_list.append(notification_dict)
+
+        return make_response(jsonify(notifications_list),200)
+    
+
+    # Adding new download
+    def post(self):
+
+        try:
+            data = request.get_json()
+            print("Received data:", data)
+
+             # Validate that required fields are present in the request
+            if 'message' not in data or 'is_read' not in data or 'contact_message_id' not in data:
+                return {'errors': ['Missing required fields: message, is_read, or contact_message_id']}, 400
+
+            new_notification = Notification(
+                message=data['message'],
+                is_read = data['is_read'],
+                contact_message_id=data['contact_message_id'] 
+            )
+
+            db.session.add(new_notification)
+            db.session.commit()
+
+            new_notification_dict = new_notification.to_dict()
+
+            response =jsonify(new_notification_dict)
+            response.status_code = 201
+
+            return response 
+
+        except Exception as e:
+            print(f"Error details: {str(e)}")
+            return {'errors': ['validation errors', str(e)]}, 500
+        
+        except SQLAlchemyError as e:
+            # Catch database-related errors and return a meaningful error message
+            print(f"Database error: {str(e)}")
+            return {'errors': ['Database error', str(e)]}, 500
+
+
+api.add_resource(Notification_Resource, '/notifications')    
 
 
 if __name__ == '__main__':

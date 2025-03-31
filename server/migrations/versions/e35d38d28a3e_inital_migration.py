@@ -1,8 +1,8 @@
-"""Reinitialized migrations
+"""inital migration
 
-Revision ID: 5a89e43b8b63
+Revision ID: e35d38d28a3e
 Revises: 
-Create Date: 2025-03-12 15:06:04.275038
+Create Date: 2025-03-31 18:31:16.401624
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '5a89e43b8b63'
+revision = 'e35d38d28a3e'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -31,15 +31,16 @@ def upgrade():
     sa.Column('sender_firstname', sa.String(length=50), nullable=False),
     sa.Column('sender_lastname', sa.String(length=50), nullable=False),
     sa.Column('email', sa.String(), nullable=False),
-    sa.Column('_mobile_number', sa.String(), nullable=True),
+    sa.Column('mobile_number', sa.String(), nullable=True),
     sa.Column('message', sa.String(), nullable=False),
+    sa.Column('date_added', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('ministries',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=False),
     sa.Column('description', sa.String(), nullable=False),
-    sa.Column('created_at', sa.String(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('notices',
@@ -76,19 +77,20 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('ministry_projects',
-    sa.Column('ministry_id', sa.Integer(), nullable=False),
-    sa.Column('project_id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('ministry_id', sa.Integer(), nullable=True),
+    sa.Column('project_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['ministry_id'], ['ministries.id'], ),
     sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ),
-    sa.PrimaryKeyConstraint('ministry_id', 'project_id')
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('notifications',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('message', sa.String(length=255), nullable=True),
     sa.Column('is_read', sa.Boolean(), nullable=True),
     sa.Column('date_added', sa.DateTime(), nullable=True),
-    sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.Column('contact_message_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['contact_message_id'], ['messages.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('project_images',
