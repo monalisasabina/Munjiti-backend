@@ -1185,7 +1185,7 @@ class ContactMessageResource(Resource):
                 "sender_firstname":contact_message.sender_firstname,
                 "sender_lastname":contact_message.sender_lastname,
                 "email":contact_message.email,
-                # "mobile_number":contact_message._mobile_number,
+                "mobile_number":contact_message.mobile_number,
                 "message":contact_message.message,
                 "date_added":contact_message.date_added
             }
@@ -1205,7 +1205,7 @@ class ContactMessageResource(Resource):
                 sender_firstname=data['sender_firstname'],
                 sender_lastname=data['sender_lastname'],
                 email=data['email'],
-                _mobile_number=data['mobile_number'],
+                mobile_number=data['mobile_number'],
                 message=data['message'],
             )
 
@@ -1242,7 +1242,7 @@ class ContactMessage_By_Id(Resource):
                 "sender_firstname":contact_message.sender_firstname,
                 "sender_lastname":contact_message.sender_lastname,
                 "email":contact_message.email,
-                # "_mobile.number":contact_message._mobile_number,
+                "mobile.number":contact_message.mobile_number,
                 "message":contact_message.message,
                 "date_added":contact_message.date_added
             }
@@ -1274,7 +1274,7 @@ class ContactMessage_By_Id(Resource):
                 "sender_firstname":contact_message.sender_firstname,
                 "sender_lastname":contact_message.sender_lastname,
                 "email":contact_message.email,
-                # "_mobile.number":contact_message._mobile_number,
+                "mobile.number":contact_message.mobile_number,
                 "message":contact_message.message,
             }
 
@@ -1366,8 +1366,83 @@ class Notification_Resource(Resource):
             print(f"Database error: {str(e)}")
             return {'errors': ['Database error', str(e)]}, 500
 
-
 api.add_resource(Notification_Resource, '/notifications')    
+
+
+class Notification_By_ID(Resource):
+
+    # Fetching notification by ID
+    def get(self,id):
+
+        notification = Notification.query.filter(Notification.id == id).first()
+
+        if not notification:
+           return make_response(jsonify({'error':'Notification not found'}),404)
+        
+        notification_dict = {
+                "id":notification.id,
+                # "message":notification.message,
+                "is_read":notification.is_read,
+                "date_added":notification.date_added,
+                "contact_message":{
+                    "id":notification.contact_message.id,
+                    "sender_firstname":notification.contact_message.sender_firstname,
+                    "message":notification.contact_message.message,
+                }
+            }
+        
+        return make_response(jsonify(notification_dict),200)
+    
+
+    # Updating a notification
+    def patch(self,id):
+
+        notification = Notification.query.filter(Notification.id == id).first()
+
+        data =  request.get_json()
+        
+        if not notification:
+            return make_response(jsonify({"error":"Notification not found"}),404)
+        
+        if not data:
+            return make_response(jsonify({"error": "Invalid JSON format"}),400)
+        
+        print("Updated Data:", data)
+
+        try:
+            for attr in data:
+                setattr(notification, attr, data[attr])
+
+            notification_dict = {
+                # "message":notification.message,
+                "is_read":notification.is_read,
+            }
+   
+            db.session.commit()
+
+            return make_response(jsonify(notification_dict), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"error":"validation errors", "details": str(e)}))
+        
+
+    #Deleting a notification
+    def delete(self,id):
+
+        notification = Notification.query.filter(Notification.id == id).first()
+      
+        if not notification:
+          return make_response(jsonify({"error":"Notification not found"}),404)
+      
+        db.session.delete(notification)
+        db.session.commit()
+
+        response_dict = {"Message":"Notification successfully deleted"}
+
+        return make_response(jsonify(response_dict),200)
+
+api.add_resource(Notification_By_ID, '/notifications/<int:id>')
+
 
 
 if __name__ == '__main__':
