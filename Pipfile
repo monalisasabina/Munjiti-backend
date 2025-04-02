@@ -32,10 +32,11 @@ flask-sqlalchemy = "*"
 sqlalchemy = "*"
 sqlalchemy-serializer = "*"
 flask-bcrypt = "*"
-flask-cors = "*"
-python-dotenv = "*"
 flask-migrate = "*"
 gunicorn = "*"
+flask-cors = "*"
+python-dotenv = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 
