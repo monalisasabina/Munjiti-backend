@@ -1,5 +1,5 @@
 from app import app
-from models import db, ProjectImage , User, Pastor, Project, Ministry, MinistryProject, Notice, Downloads, ContactMessage, Notification, cipher
+from models import db, ProjectImage , User, Pastor, Project, Ministry, MinistryProject, Notice, Downloads, ContactMessage, Notification, cipher,Gallery
 
 
 with app.app_context():
@@ -8,16 +8,17 @@ with app.app_context():
 
     # Deleting all the rows in tables
     print("\n Clearing the database")
+    MinistryProject.query.delete()
     User.query.delete()
     Pastor.query.delete()
     Project.query.delete()
     Ministry.query.delete()
-    MinistryProject.query.delete()
     Notice.query.delete()
     Downloads.query.delete()
-    ContactMessage.query.delete()
     Notification.query.delete()
+    ContactMessage.query.delete()
     ProjectImage.query.delete()
+    Gallery.query.delete()
 
 
     # Seeding Users
@@ -31,6 +32,9 @@ with app.app_context():
         ]
     db.session.add_all(users)
 
+    db.session.commit()
+
+
 
     # Seeding Pastors
     print("Adding Pastors...")
@@ -43,29 +47,32 @@ with app.app_context():
         ]
     db.session.add_all(pastors)
 
+    db.session.commit()
 
-    # Seeding Projects
+
+     # Seeding Projects
     print("Adding Projects")
     projects = [
-            Project(name="Church Renovation", description="Renovating the main church building."),
-            Project(name="Community Feeding", description="Providing food to the less fortunate."),
-            Project(name="Youth Empowerment", description="Training youth in skills development."),
-            Project(name="Mission Outreach", description="Spreading the gospel to remote areas."),
-            Project(name="Children's Ministry", description="Supporting children's education."),
-        ]
+        Project(name="Church Renovation", description="Renovating the main church building."),
+        Project(name="Community Feeding", description="Providing food to the less fortunate."),
+        Project(name="Youth Empowerment", description="Training youth in skills development."),
+        Project(name="Mission Outreach", description="Spreading the gospel to remote areas."),
+        Project(name="Children's Ministry", description="Supporting children's education."),
+    ]
     db.session.add_all(projects)
+    db.session.commit()  # Ensure projects are committed before proceeding
 
-     # Seeding Project Images
-    print("Adding Project Images...")
+    # Seeding Project Images
+    print("Adding project images...")
     project_images = [
-        ProjectImage(project_id=1, image_url="renovation1.jpg"),
-        ProjectImage(project_id=1, image_url="renovation2.jpg"),
-        ProjectImage(project_id=2, image_url="feeding1.jpg"),
-        ProjectImage(project_id=3, image_url="youth1.jpg"),
-        ProjectImage(project_id=4, image_url="mission1.jpg"),
+        ProjectImage(project_id=projects[0].id, image_url="renovation1.jpg"),
+        ProjectImage(project_id=projects[0].id, image_url="renovation2.jpg"),
+        ProjectImage(project_id=projects[1].id, image_url="feeding1.jpg"),
+        ProjectImage(project_id=projects[2].id, image_url="youth1.jpg"),
+        ProjectImage(project_id=projects[3].id, image_url="mission1.jpg"),
     ]
     db.session.add_all(project_images)
-
+    db.session.commit()
 
     # Seeding Ministries
     print('Adding ministries')
@@ -77,6 +84,8 @@ with app.app_context():
             Ministry(name="Children Ministry", description="Takes care of children in the church."),
         ]
     db.session.add_all(ministries)
+
+    db.session.commit()
 
 
     # Seeding Notices
@@ -90,6 +99,8 @@ with app.app_context():
         ]
     db.session.add_all(notices)
 
+    db.session.commit()
+
 
     # Seeding Downloads
     print("Adding downloads")
@@ -101,6 +112,8 @@ with app.app_context():
             Downloads(name="Mission Report", description="Details of past mission trips.", file_url="mission.pdf"),
         ]
     db.session.add_all(downloads)
+
+    db.session.commit()
 
 
     # Seeding Contact Messages
@@ -114,17 +127,34 @@ with app.app_context():
         ]
     db.session.add_all(messages)
 
+    db.session.commit()
+
 
     # Seeding Notifications
     print("Adding notifications...")
     notifications = [
-            Notification(message="Welcome to the church website!", contact_message_id=1, is_read=True),
-            Notification(message="Your request has been received.", contact_message_id=2, is_read=False ),
-            Notification(message="Upcoming events this weekend.", contact_message_id=3, is_read=True),
-            Notification(message="New notice added to the board.", contact_message_id=4, is_read=False),
-            Notification(message="Thank you for your donation.",contact_message_id=5, is_read=True),
+            Notification(message="Welcome to the church website!", contact_message_id=messages[0].id, is_read=True),
+            Notification(message="Your request has been received.", contact_message_id=messages[1].id, is_read=False ),
+            Notification(message="Upcoming events this weekend.", contact_message_id=messages[2].id, is_read=True),
+            Notification(message="New notice added to the board.", contact_message_id=messages[3].id, is_read=False),
+            Notification(message="Thank you for your donation.",contact_message_id=messages[4].id, is_read=True),
         ]
     db.session.add_all(notifications)
+
+    db.session.commit()
+
+    # Seeding Gallery
+    print("Adding gallery images...")
+    gallery_items = [
+          Gallery(image_url="https://example.com/images/gallery1.jpg", description="A beautiful sunset over the church."),
+          Gallery(image_url="https://example.com/images/gallery2.jpg", description="Church building exterior during the day."),
+          Gallery(image_url="https://example.com/images/gallery3.jpg", description="Congregation during Sunday service."),
+          Gallery(image_url="https://example.com/images/gallery4.jpg", description="Close-up of the altar."),
+          Gallery(image_url="https://example.com/images/gallery5.jpg", description="A community event in the church hall.")
+        ]
+
+    db.session.add_all(gallery_items)
+    db.session.commit()
 
 
     # Fetch ministries and projects from the DB
@@ -148,6 +178,8 @@ with app.app_context():
 
     # Commit all changes
     db.session.commit()
+
+
     print("\nDatabase seeded successfully!")
 
     print("\nMinistries")

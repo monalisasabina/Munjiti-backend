@@ -1,8 +1,8 @@
-"""inital migration
+"""initial migrate
 
-Revision ID: e35d38d28a3e
+Revision ID: 0c941dbaa46c
 Revises: 
-Create Date: 2025-03-31 18:31:16.401624
+Create Date: 2025-04-03 17:17:28.363275
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'e35d38d28a3e'
+revision = '0c941dbaa46c'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -23,6 +23,13 @@ def upgrade():
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('description', sa.String(), nullable=False),
     sa.Column('file_url', sa.String(length=300), nullable=False),
+    sa.Column('date_added', sa.DateTime(), nullable=True),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('gallery',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('image_url', sa.String(), nullable=True),
+    sa.Column('description', sa.String(), nullable=True),
     sa.Column('date_added', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
@@ -114,5 +121,6 @@ def downgrade():
     op.drop_table('notices')
     op.drop_table('ministries')
     op.drop_table('messages')
+    op.drop_table('gallery')
     op.drop_table('downloads')
     # ### end Alembic commands ###

@@ -207,7 +207,7 @@ class ContactMessage(db.Model,SerializerMixin):
     message = db.Column(db.String, nullable=False)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
 
-    notifications = db.relationship("Notification", back_populates="contact_message", lazy=True)
+    notifications = db.relationship("Notification", back_populates="contact_message", lazy=True, passive_deletes=True)
 
     def __repr__(self):
         return f"<Message from {self.sender_firstname} {self.sender_lastname}>"
@@ -223,7 +223,7 @@ class Notification(db.Model, SerializerMixin):
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Foreign Contact_message ID
-    contact_message_id = db.Column(db.Integer, db.ForeignKey('messages.id'), nullable=False)
+    contact_message_id = db.Column(db.Integer, db.ForeignKey('messages.id',ondelete='CASCADE'))
 
     # Relation between contact message and notification
     contact_message = db.relationship('ContactMessage', back_populates='notifications')
@@ -238,4 +238,22 @@ class Notification(db.Model, SerializerMixin):
     def __repr__(self):
       return f"<Notification {self.message[:20]}...>" 
     
+
+class Gallery(db.Model, SerializerMixin):
+    __tablename__='gallery'
+
+    id = db.Column(db.Integer, primary_key=True)
+    image_url = db.Column(db.String, nullable=True)
+    description = db.Column(db.String, nullable=True)
+    date_added = db.Column(db.DateTime, default=datetime.utcnow)
+
+    @validates('image_url')
+    def validate_image_url(self, key, value):
+        if not value:
+            raise ValueError("Image URL cannot be empty")
+        return value
+
+
+    def __repr__(self):
+        return f"<Gallery: Pic no:{self.id} | Image: {self.image_url} | Date added: {self.date_added}"
     
