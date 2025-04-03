@@ -2,7 +2,7 @@ from flask import Flask,make_response,request,jsonify,session
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from flask_cors import CORS
-from models import db, joinedload, User, Pastor, Project, Ministry, MinistryProject, Notice, Downloads, ContactMessage, Notification, ProjectImage, cipher, bcrypt
+from models import db, joinedload, Gallery, User, Pastor, Project, Ministry, MinistryProject, Notice, Downloads, ContactMessage, Notification, ProjectImage, cipher, bcrypt
 from sqlalchemy.exc import SQLAlchemyError
 
 import os
@@ -45,6 +45,7 @@ class Home(Resource):
                 "/downloads",
                 "/contactmessages",
                 "/notifications",
+                "/gallery"
             ]
         },200
     
@@ -1448,6 +1449,52 @@ class Notification_By_ID(Resource):
 
 api.add_resource(Notification_By_ID, '/notifications/<int:id>')
 
+
+# Gallery CRUD__________________________________________________________________________________________________________________
+
+class GalleryResource(Resource):
+
+    # Fetching notifications
+    def get(self):
+
+        gallery_list=[]
+
+        for image in Gallery.query.all():
+
+            image_dict = {
+                "id":image.id,
+                "image_url":image.image_url,
+                "description":image.description,
+                "date_added":image.date_added,
+            }
+
+            gallery_list.append(image_dict)
+
+        return make_response(jsonify(gallery_list),200)
+
+api.add_resource(GalleryResource, '/gallery')
+
+
+class GalleryByID(Resource):
+
+    # Fetching notification by ID
+    def get(self,id):
+
+        image = Gallery.query.filter(Gallery.id == id).first()
+
+        if not image:
+           return make_response(jsonify({'error':'Image not found'}),404)
+        
+        image_dict = {
+                "id":image.id,
+                "image_url":image.image_url,
+                "description":image.description,
+                "date_added":image.date_added,
+            }
+        
+        return make_response(jsonify(image_dict),200)
+
+api.add_resource(GalleryByID, '/gallery/<int:id>')
 
 
 if __name__ == '__main__':
