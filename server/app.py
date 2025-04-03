@@ -13,7 +13,8 @@ ADMIN_CODE = os.getenv("ADMIN_CODE")
 # print(f"Loaded ADMIN_CODE: {repr(ADMIN_CODE)}")  # Debugging statement
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URI", "sqlite:///church.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URI")
+# app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URI", "sqlite:///church.db")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 
