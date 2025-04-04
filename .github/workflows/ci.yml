@@ -27,7 +27,7 @@ jobs:
           pipenv install --dev
           
       - name: List installed pipenv packages
-        run: pipenv lock --requirements  # This will show you the installed packages
+        run: pipenv lock   # This will show you the installed packages
   
       - name: Check if pytest is installed
         run: pipenv run pip show pytest  # This will verify if pytest is installed in the environment
