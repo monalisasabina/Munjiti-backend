@@ -19,12 +19,19 @@ jobs:
         with:
           python-version: '3.8'
 
+      - name: Install pipenv
+        run: pip install pipenv
+
       - name: Install dependencies (Pipenv in root)
         run: |
-          pip install pipenv
           pipenv install --dev
-          pipenv shell
-
-      - name: Run tests (in server folder)
+          
+      - name: List installed pipenv packages
+        run: pipenv lock --requirements  # This will show you the installed packages
+  
+      - name: Check if pytest is installed
+        run: pipenv run pip show pytest  # This will verify if pytest is installed in the environment
+          
+      - name: Run tests (in server folder) 
         run: |
           pipenv run pytest server/
