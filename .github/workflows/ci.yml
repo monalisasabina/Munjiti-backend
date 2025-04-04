@@ -1,0 +1,29 @@
+name: Flask API CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies (Pipenv in root)
+        run: |
+          pip install pipenv
+          pipenv install --dev
+
+      - name: Run tests (in server folder)
+        run: |
+          pipenv run pytest server/
