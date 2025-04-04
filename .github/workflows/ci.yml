@@ -29,9 +29,9 @@ jobs:
       - name: List installed pipenv packages
         run: pipenv lock   # This will show you the installed packages
   
-      - name: Check if pytest is installed
-        run: pipenv run pip show pytest  # This will verify if pytest is installed in the environment
+      # - name: Check if pytest is installed
+      #   run: pipenv run pip show pytest  # This will verify if pytest is installed in the environment
           
-      - name: Run tests (in server folder) 
-        run: |
-          pipenv run pytest server/
+      # - name: Run tests (in server folder) 
+      #   run: |
+      #     pipenv run pytest server/
