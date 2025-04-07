@@ -1471,6 +1471,40 @@ class GalleryResource(Resource):
             gallery_list.append(image_dict)
 
         return make_response(jsonify(gallery_list),200)
+    
+
+    # Adding new image
+    def post(self):
+
+        try:
+            data = request.get_json()
+            print("Received data:", data)
+
+
+            new_image = Gallery(
+                image_url=data['image_url'],
+                description = data['description'],
+            )
+
+            db.session.add(new_image)
+            db.session.commit()
+
+            new_image_dict = new_image.to_dict()
+
+            response =jsonify(new_image_dict)
+            response.status_code = 201
+
+            return response 
+
+        except Exception as e:
+            print(f"Error details: {str(e)}")
+            return {'errors': ['validation errors', str(e)]}, 500
+        
+        except SQLAlchemyError as e:
+            # Catch database-related errors and return a meaningful error message
+            print(f"Database error: {str(e)}")
+            return {'errors': ['Database error', str(e)]}, 500
+
 
 api.add_resource(GalleryResource, '/gallery')
 
