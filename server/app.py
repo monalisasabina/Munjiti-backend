@@ -1527,6 +1527,55 @@ class GalleryByID(Resource):
             }
         
         return make_response(jsonify(image_dict),200)
+    
+
+    # Updating an image on gallery
+    def patch(self,id):
+
+        image = Gallery.query.filter(Gallery.id == id).first()
+
+        data =  request.get_json()
+        
+        if not image:
+            return make_response(jsonify({"error":"Image not found"}),404)
+        
+        if not data:
+            return make_response(jsonify({"error": "Invalid JSON format"}),400)
+        
+        print("Updated Data:", data)
+
+        try:
+            for attr in data:
+                setattr(image, attr, data[attr])
+
+            image_dict = {
+                "image_url":image.image_url,
+                "description":image.description,
+            }
+        
+            db.session.commit()
+
+            return make_response(jsonify(image_dict), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"error":"validation errors", "details": str(e)}))
+
+
+    #Deleting an image on gallery
+    def delete(self,id):
+
+        image = Gallery.query.filter(Gallery.id == id).first()
+      
+        if not image:
+          return make_response(jsonify({"error":"Image not found"}),404)
+      
+        db.session.delete(image)
+        db.session.commit()
+
+        response_dict = {"Message":"Image successfully deleted"}
+
+        return make_response(jsonify(response_dict),200)
+
 
 api.add_resource(GalleryByID, '/gallery/<int:id>')
 
