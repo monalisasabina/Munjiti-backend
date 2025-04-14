@@ -32,7 +32,7 @@ CORS(app)
 class Home(Resource):
     def get(self):
         return{
-            "message":"Welcome to the Munjiti Church API",
+            "message":"⛪️ Welcome to the Munjiti Church API ⛪️",
             "Api_version":"v1",
             "available_endpoints":[
                 "/users",
