@@ -30,12 +30,15 @@ The project majorly depends on these files under the Server directory;
 
    2. Locally
       - You first fork and clone here on Github
-      - You go to the terminal on your computer then install the dependancies using pipenv install && pipenv shell
+      - You go to the terminal on your computer then install the dependancies using:
+            
+             pipenv install && pipenv shell
+      
       - When successful to access the endpoints, you can either use:
 
-              - python app.py
-              OR
-              - flask run
+               python app.py
+                   OR
+               flask run
 
 ## 🧾 License
 This project is licensed under the [MIT License](./LICENSE).
